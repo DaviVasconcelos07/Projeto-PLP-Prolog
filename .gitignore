@@ -1,0 +1,5 @@
+*.qlf
+*.log
+*.tmp
+.DS_Store
+
