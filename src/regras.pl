@@ -39,7 +39,11 @@ media_geral_aluno(_Aluno, _Media) :-
     Media is Soma / Quantidade.
 
 media_geral_turma(_Media) :-
-    throw(error(not_implemented(media_geral_turma/1), _)).
+    findall(M, (aluno(A), media_geral_aluno(A, M)), Medias),
+    Medias \= [],
+    sum_list(Medias, Soma),
+    length(Medias, Quantidade),
+    Media is Soma / Quantidade.
 
 aprovado_direto(Aluno, Disciplina) :-
     media_disciplina(Aluno, Disciplina, Media),
@@ -101,7 +105,12 @@ aluno_aprovado(_Aluno) :-
     \+ (member(D, Disciplinas), situacao_aluno_disciplina(Aluno, D, reprovado)).
 
 porcentagem_aprovacao(_Porcentagem) :-
-    throw(error(not_implemented(porcentagem_aprovacao/1), _)).
+    findall(A, aluno(A), Todos),
+    length(Todos, Total),
+    Total > 0,
+    findall(A, (member(A, Todos), aluno_aprovado(A)), Aprovados),
+    length(Aprovados, QtdAprovados),
+    Porcentagem is (QtdAprovados / Total) * 100.
 
 maior_media(_Aluno, _Media) :-
     findall(M-A, (aluno(A), media_geral_aluno(A, M)), Pares),
@@ -109,7 +118,8 @@ maior_media(_Aluno, _Media) :-
     max_member(Media-Aluno, Pares).
 
 ranking_alunos(_Ranking) :-
-    throw(error(not_implemented(ranking_alunos/1), _)).
+    findall(Media-Aluno, (aluno(Aluno), media_geral_aluno(Aluno, Media)), Pares),
+    sort(0, @>=, Pares, Ranking).
 
 disciplina_mais_dificil(_Disciplina) :-
     throw(error(not_implemented(disciplina_mais_dificil/1), _)).
