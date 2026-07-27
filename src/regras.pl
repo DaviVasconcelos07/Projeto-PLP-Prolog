@@ -29,7 +29,7 @@ soma_provas([Nota-Peso | Resto], SomaNotas, SomaPesos) :-
     SomaNotas is SomaNotasResto + Nota * Peso,
     SomaPesos is SomaPesosResto + Peso.
 
-media_geral_aluno(_Aluno, _Media) :-
+media_geral_aluno(Aluno, Media) :-
     findall(D, prova(Aluno, D, _, _, _), DisciplinasComRepeticao),
     sort(DisciplinasComRepeticao, Disciplinas),
     findall(M, (member(D, Disciplinas), media_disciplina(Aluno, D, M)), Medias),
@@ -38,7 +38,7 @@ media_geral_aluno(_Aluno, _Media) :-
     length(Medias, Quantidade),
     Media is Soma / Quantidade.
 
-media_geral_turma(_Media) :-
+media_geral_turma(Media) :-
     findall(M, (aluno(A), media_geral_aluno(A, M)), Medias),
     Medias \= [],
     sum_list(Medias, Soma),
@@ -94,17 +94,13 @@ media_final(Aluno, Disciplina, NotaFinal, MediaFinal) :-
     TotalPesos > 0,
     MediaFinal is (Media * PesoMedia + NotaFinal * PesoFinal) / TotalPesos.
 
-aluno_aprovado(_Aluno) :-
+aluno_aprovado(Aluno) :-
     aluno(Aluno),
     findall(D, prova(Aluno, D, _, _, _), DisciplinasComRepeticao),
     sort(DisciplinasComRepeticao, Disciplinas),
-    forall(
-        member(D, Disciplinas),
-        situacao_aluno_disciplina(Aluno, D, Situacao)
-    ),
     \+ (member(D, Disciplinas), situacao_aluno_disciplina(Aluno, D, reprovado)).
 
-porcentagem_aprovacao(_Porcentagem) :-
+porcentagem_aprovacao(Porcentagem) :-
     findall(A, aluno(A), Todos),
     length(Todos, Total),
     Total > 0,
@@ -112,14 +108,24 @@ porcentagem_aprovacao(_Porcentagem) :-
     length(Aprovados, QtdAprovados),
     Porcentagem is (QtdAprovados / Total) * 100.
 
-maior_media(_Aluno, _Media) :-
+maior_media(Aluno, Media) :-
     findall(M-A, (aluno(A), media_geral_aluno(A, M)), Pares),
     Pares \= [],
     max_member(Media-Aluno, Pares).
 
-ranking_alunos(_Ranking) :-
+ranking_alunos(Ranking) :-
     findall(Media-Aluno, (aluno(Aluno), media_geral_aluno(Aluno, Media)), Pares),
     sort(0, @>=, Pares, Ranking).
 
-disciplina_mais_dificil(_Disciplina) :-
-    throw(error(not_implemented(disciplina_mais_dificil/1), _)).
+disciplina_mais_dificil(Disciplina) :-
+    findall(Media-D, (disciplina(D, _, _, _), media_disciplina_turma(D, Media)), Pares),
+    Pares \= [],
+    sort(0, @=<, Pares, [_-Disciplina | _]).
+
+
+media_disciplina_turma(Disciplina, Media) :-
+    findall(M, (aluno(A), media_disciplina(A, Disciplina, M)), Medias),
+    Medias \= [],
+    sum_list(Medias, Soma),
+    length(Medias, Quantidade),
+    Media is Soma / Quantidade.
